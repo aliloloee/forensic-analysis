@@ -6,40 +6,39 @@ from core.weaviate_client import get_client
 from chunks.ingest import ingest_chunks
 from chunks.collection import create_chunk_collection
 
-def bulk_ingestion():
-    chunk_df = apply_chunking_and_normalization()
+# def bulk_ingestion():
+#     chunk_df = apply_chunking_and_normalization()
 
-    #### This part need to be updated to compute embeddings instead of reading from file
-    embeddings = read_embeddings(EMBEDDINGS_DIR)
+#     #### This part need to be updated to compute embeddings instead of reading from file
+#     embeddings = read_embeddings(EMBEDDINGS_DIR)
 
-    if len(chunk_df) != len(embeddings):
-        raise ValueError(f"Length mismatch: chunk_df has {len(chunk_df)} rows, but embeddings has {len(embeddings)} vectors.")
+#     if len(chunk_df) != len(embeddings):
+#         raise ValueError(f"Length mismatch: chunk_df has {len(chunk_df)} rows, but embeddings has {len(embeddings)} vectors.")
     
-    client = get_client()
-    create_chunk_collection(client)
-    ingest_chunks(client, chunk_df, embeddings)
-    client.close()
+#     client = get_client()
+#     create_chunk_collection(client)
+#     ingest_chunks(client, chunk_df, embeddings)
+#     client.close()
 
-def check():
-    client = get_client()
-    collection = client.collections.get(settings.CHUNK_COLLECTION)
 
-    resp = collection.aggregate.over_all(total_count=True)
-    print(resp.total_count)
+from retrieval.bm25 import retrieve_all
 
-    client.close()
-
-def check_2():
-    client = get_client()
-    collection = client.collections.get(settings.CHUNK_COLLECTION)
-
-    resp = collection.query.fetch_objects(limit=3)
-
-    for obj in resp.objects:
-        print(obj.properties)
-
-    client.close()
 
 if __name__ == "__main__":
     # bulk_ingestion()
-    check_2()
+    H1_queries = [
+        "bypass regulation strategy",
+        "avoid price caps",
+        "regulatory loophole",
+        "off the record regulators",
+        "do not disclose regulators",
+        "confidential market manipulation",
+        "talking points mislead",
+        "keep this between us",
+        "regulator unaware",
+        "California price manipulation"
+    ]
+
+    hits = retrieve_all(H1_queries, top_k=10)
+    print(hits.head())
+    print(len(hits))

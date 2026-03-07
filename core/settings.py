@@ -24,3 +24,25 @@ COLLECTION_VECTOR_NAME = "dense_vector"
 PIPELINE_VERSION = "v1"
 SAFE_MODEL = EMBEDDING_MODEL.replace("/", "_").replace("-", "_")
 CHUNK_COLLECTION = f"EmailChunk_{SAFE_MODEL}_{PIPELINE_VERSION}"
+
+
+
+############## Search Settings ############
+RETURN_PROPERTIES = [
+    # "chunk_id",
+    # "email_id",
+    # "chunk_index",
+    # "chunk_base",
+    "chunk_text_sparse",
+    # "chunk_text_dense",
+    # "subject",
+    # "from",
+    # "to",
+    # "date",
+]
+
+BM25_fields = ["chunk_text_sparse"]
+BM25_SCORE = "score"
+
+DENSE_DISTANCE = "distance"
+DENSE_SCORE = BM25_SCORE
