@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Email csv files and embeddings
+*.csv
+*.npy
+
 # Distribution / packaging
 .Python
 build/
