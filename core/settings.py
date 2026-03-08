@@ -2,10 +2,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+STATIC_DIR = BASE_DIR / "static"
+
 
 ############ Static files and directories ############
-EMAILS_CSV_PATH = BASE_DIR / "emails.csv"  
-EMBEDDINGS_DIR = BASE_DIR / "dense_embeddings.npy" 
+EMAILS_CSV_PATH = STATIC_DIR / "emails.csv"  
+EMBEDDINGS_DIR = STATIC_DIR / "dense_embeddings.npy" 
 
 
 ############ Embedding Model Settings ############
@@ -46,3 +48,14 @@ BM25_SCORE = "score"
 
 DENSE_DISTANCE = "distance"
 DENSE_SCORE = BM25_SCORE
+
+
+
+############# Hypothesis Expansion (HE) Settings ############
+HE_BASE = "http://141.55.226.254:11434"
+HE_URL = f"{HE_BASE}/api/generate"
+HE_MODEL = "mixtral:8x22b"
+HE_QUERIES = 10
+HE_MAX_LENGTH = 5
+
+HE_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "hypothesis_expansion.txt"

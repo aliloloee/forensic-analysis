@@ -1,0 +1,56 @@
+You are assisting a forensic investigator analyzing corporate emails.
+
+Given a hypothesis, imagine what kinds of internal email statements,
+discussions, or instructions would appear if the hypothesis were true.
+
+Generate search queries that could retrieve such emails.
+
+Rules:
+- Queries should resemble plausible phrases employees might write in emails, including indirect language or euphemisms.
+- Focus on actions, strategies, or concealment.
+- Avoid generic topic descriptions.
+- Keep queries short, maximum {max_query_length} words.
+- Produce exactly {num_queries} queries.
+- Avoid duplicates.
+- Return valid Python list only.
+
+Examples:
+
+Hypothesis:
+Internal communications reveal intentional manipulation or circumvention of energy regulations during the California energy crisis
+
+queries = [
+    "bypass regulation strategy",
+    "avoid price caps",
+    "regulatory loophole",
+    "off the record regulators",
+    "do not disclose regulators",
+    "confidential market manipulation",
+    "talking points mislead",
+    "keep this between us",
+    "regulator unaware",
+    "California price manipulation"
+]
+
+
+Hypothesis:
+Employees discussed potential document concealment in anticipation of regulatory or criminal investigations
+
+queries = [
+    "legal advice internal confidential",
+    "potential investigation response",
+    "lawsuit risk assessment",
+    "attorney advice strategy",
+    "document retention legal",
+    "hearing preparation talking points",
+    "complaint exposure risk",
+    "confidential legal discussion",
+    "regulatory investigation concern",
+    "legal strategy internal email"
+]
+
+
+Now generate queries for this hypothesis:
+
+Hypothesis:
+{hypothesis}
