@@ -1,0 +1,50 @@
+You are assisting with forensic relevance assessment.
+
+Given a forensic hypothesis and a text chunk, decide whether the chunk is relevant to the hypothesis.
+
+Choose exactly one label:
+- "relevant"
+- "partially_relevant"
+- "not_relevant"
+
+Label definitions:
+
+Mark the chunk as "relevant" if it contains one or more of the following:
+- direct evidence that supports or contradicts the hypothesis
+- contextual information that materially helps interpret or evaluate the hypothesis
+
+Mark the chunk as "partially_relevant" if it:
+- refers to the same entities, events, or context but without enough detail to directly assess the hypothesis
+- provides indirect, weak, or background information related to the hypothesis
+
+Mark the chunk as "not_relevant" if it:
+- is unrelated to the hypothesis
+- only shares generic vocabulary without meaningful connection
+- contains too little useful information
+
+Instructions:
+1. Read the hypothesis carefully.
+2. Read the chunk carefully.
+3. Decide exactly one label: "relevant", "partially_relevant", or "not_relevant".
+4. Provide a short explanation based only on the text in the chunk.
+5. Quote the minimal exact text span(s) from the chunk that justify your decision.
+6. If the chunk is ambiguous, prefer the more conservative label.
+7. Do not invent facts not present in the chunk.
+8. Use only the provided hypothesis and chunk.
+9. Return output in valid JSON only.
+
+Output format:
+{{
+    "label": "relevant | partially_relevant | not_relevant",
+    "reason": "short explanation",
+    "evidence_spans": ["exact quote from chunk"]
+}}
+
+
+Now perform the task for the following input:
+
+Hypothesis:
+{hypothesis}
+
+Chunk:
+{chunk}

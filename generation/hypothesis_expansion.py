@@ -39,7 +39,7 @@ def generate_queries(
         }
     }
 
-    r = requests.post(settings.HE_URL, json=payload)
+    r = requests.post(settings.BASE_URL, json=payload)
     r.raise_for_status()
     data = r.json()
 

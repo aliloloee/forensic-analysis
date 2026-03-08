@@ -30,12 +30,14 @@ CHUNK_COLLECTION = f"EmailChunk_{SAFE_MODEL}_{PIPELINE_VERSION}"
 
 
 ############## Search Settings ############
+EMAIL_ID = "email_id"
+CHUNK_TEXT_SPARSE = "chunk_text_sparse"
 RETURN_PROPERTIES = [
     # "chunk_id",
-    # "email_id",
+    EMAIL_ID,
     # "chunk_index",
     # "chunk_base",
-    "chunk_text_sparse",
+    CHUNK_TEXT_SPARSE,
     # "chunk_text_dense",
     # "subject",
     # "from",
@@ -51,11 +53,17 @@ DENSE_SCORE = BM25_SCORE
 
 
 
-############# Hypothesis Expansion (HE) Settings ############
-HE_BASE = "http://141.55.226.254:11434"
-HE_URL = f"{HE_BASE}/api/generate"
+
+############# Generation Settings ############
+BASE = "http://141.55.226.254:11434"
+BASE_URL = f"{BASE}/api/generate"
+
+## Hypothesis Expansion (HE) Settings
 HE_MODEL = "mixtral:8x22b"
 HE_QUERIES = 10
 HE_MAX_LENGTH = 5
-
 HE_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "hypothesis_expansion.txt"
+
+## Chunk Generation (CG) Settings
+CG_MODEL = "llama3:latest"
+CG_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "chunk_analysis.txt"
