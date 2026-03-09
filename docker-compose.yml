@@ -14,5 +14,31 @@ services:
       DEFAULT_VECTORIZER_MODULE: "none" ## Vectorization handled externally
       CLUSTER_HOSTNAME: "node1"
 
+  embedding_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: embedding_api
+    ports:
+      - "8000:8000"
+    environment:
+      EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+      MODEL_CACHE_DIR: /models_cache
+      HF_HOME: /models_cache
+      NORMALIZE_EMBEDDINGS: "false"
+    volumes:
+      - ./hf_cache:/models_cache
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
 volumes:
   weaviate_data:

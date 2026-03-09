@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Embedding cache
+hf_cache
+hf_cache/
+
 # Email csv files and embeddings
 *.csv
 *.npy
