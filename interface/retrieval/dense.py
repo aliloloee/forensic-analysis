@@ -1,21 +1,35 @@
-# from sentence_transformers import SentenceTransformer
-# from core.weaviate_client import get_client
-# from chunks.search import search_dense
+import pandas as pd
 
-# model = SentenceTransformer("BAAI/bge-small-en")
-# query_vec = model.encode(
-#     ["energy trading losses"],
-#     convert_to_numpy=True,
-#     normalize_embeddings=True,
-# ).astype("float32")[0]
+from core.weaviate_client import get_client
+from core.embedding_client import EmbeddingClient
+from retrieval.search import search_dense
 
-# client = get_client()
 
-# hits = search_dense(
-#     client=client,
-#     query_vector=query_vec,
-#     limit=20,
-# )
+def _retrieve(client, query_vec, top_k=20):
+    return search_dense(
+        client=client,
+        query_vector=query_vec,
+        limit=top_k,
+    )
 
-# client.close()
-# print(hits.head())
+def retrieve_all(queries: list[str], top_k=20):
+    embedder = EmbeddingClient()
+    client = get_client()
+    try:
+        all_hits = []
+        for q in queries:
+            texts = list(q)
+            query_vec = embedder.embed(texts)[0]
+            df = _retrieve(client, query_vec, top_k=top_k)
+            df["query"] = q
+            all_hits.append(df)
+
+        if not all_hits:
+            return pd.DataFrame()
+
+        hypothesis_hits = pd.concat(all_hits, ignore_index=True)
+
+        # return add_email_evidence(hypothesis_hits) ## Add later
+        return hypothesis_hits
+    finally:
+        client.close()

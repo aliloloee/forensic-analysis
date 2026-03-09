@@ -6,11 +6,12 @@ from core import settings
 
 
 class ResultsFrame(ttk.LabelFrame):
-    def __init__(self, parent, on_rag, on_extract):
+    def __init__(self, parent, on_rag_bm25, on_rag_dense):
         super().__init__(parent, text="Retrieve and Generate", padding=12)
 
-        self.on_rag = on_rag
-        self.on_extract = on_extract
+        self.on_rag_bm25 = on_rag_bm25
+        self.on_rag_dense = on_rag_dense
+        # self.on_extract = on_extract
 
         # Row 0: dropdown
         # Row 1: main content
@@ -73,11 +74,23 @@ class ResultsFrame(ttk.LabelFrame):
         buttons_frame = ttk.Frame(bm25_group)
         buttons_frame.grid(row=1, column=0, sticky="nw")
 
-        self.rag_button = ttk.Button(buttons_frame, text="RAG", command=self.on_rag)
-        self.extract_button = ttk.Button(buttons_frame, text="Extract", command=self.on_extract)
+        self.rag_button = ttk.Button(buttons_frame, text="RAG", command=self.on_rag_bm25)
+        self.extract_button = ttk.Button(buttons_frame, text="Extract")
 
         self.rag_button.grid(row=0, column=0, padx=(0, 10), pady=5)
         self.extract_button.grid(row=0, column=1, pady=5)
+
+        dense_group = ttk.LabelFrame(left_frame, text="Dense", padding=12)
+        dense_group.grid(row=1, column=0, sticky="ew", pady=(0, 15))
+
+        buttons_frame_dense = ttk.Frame(dense_group)
+        buttons_frame_dense.grid(row=1, column=0, sticky="nw")
+
+        self.rag_button_dense = ttk.Button(buttons_frame_dense, text="RAG", command=self.on_rag_dense)
+        self.extract_button_dense = ttk.Button(buttons_frame_dense, text="Extract")
+
+        self.rag_button_dense.grid(row=0, column=0, padx=(0, 10), pady=5)
+        self.extract_button_dense.grid(row=0, column=1, pady=5)
 
         # =====================================
         # Right side

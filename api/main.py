@@ -10,7 +10,7 @@ from api.schemas import EmbedRequest, EmbedResponse, HealthResponse
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+MODEL_NAME = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en")
 MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "/models_cache")
 NORMALIZE_EMBEDDINGS = os.getenv("NORMALIZE_EMBEDDINGS", "false").lower() == "true"
 

@@ -9,7 +9,7 @@ from app.ui.query_design_frame import QueryDesignFrame
 from app.ui.results_frame import ResultsFrame
 from app.ui.status_bar import StatusBar
 from app.services.query_service import generate_queries
-from app.services.rag_service import bm25_rag
+from app.services.rag_service import bm25_rag, dense_rag
 
 from core import settings
 
@@ -48,9 +48,10 @@ class App(tk.Tk):
 
         self.results_frame = ResultsFrame(
             self,
-            on_rag=self.handle_rag,
+            on_rag_bm25=self.handle_rag_bm25,
+            on_rag_dense=self.handle_rag_dense,
             # on_show=self.handle_show,
-            on_extract=self.handle_extract,
+            # on_extract=self.handle_extract,
         )
         self.results_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=6)
 
@@ -134,7 +135,7 @@ class App(tk.Tk):
     # =========================================================
     # RAG
     # =========================================================
-    def handle_rag(self):
+    def handle_rag_bm25(self):
         if self._rag_task_running:
             return
 
@@ -146,14 +147,42 @@ class App(tk.Tk):
 
         self._update_rag_elapsed_time()
 
-        thread = threading.Thread(target=self._run_rag_background, daemon=True)
+        thread = threading.Thread(target=self._run_rag_bm25_background, daemon=True)
         thread.start()
 
-    def _run_rag_background(self):
+    def _run_rag_bm25_background(self):
         try:
             hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
             queries = json.loads(self.query_frame.queries_text.get("1.0", "end-1c").strip())
             results = bm25_rag(
+                    hypothesis=hypothesis, 
+                    queris=queries,
+                    top_k=settings.PER_QUERY_TOP_K
+                    )
+            self.after(0, self._on_rag_finished, results)
+        except Exception as exc:
+            self.after(0, self._on_rag_failed, str(exc))
+
+    def handle_rag_dense(self):
+        if self._rag_task_running:
+            return
+
+        self._rag_task_running = True
+        self._rag_start_time = time.time()
+
+        self.results_frame.set_controls_enabled(False)
+        self.results_frame.set_results_enabled(False)
+
+        self._update_rag_elapsed_time()
+
+        thread = threading.Thread(target=self._run_rag_dense_background, daemon=True)
+        thread.start()
+
+    def _run_rag_dense_background(self):
+        try:
+            hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
+            queries = json.loads(self.query_frame.queries_text.get("1.0", "end-1c").strip())
+            results = dense_rag(
                     hypothesis=hypothesis, 
                     queris=queries,
                     top_k=settings.PER_QUERY_TOP_K

@@ -42,21 +42,21 @@ def search_bm25(client, query: str, limit: int = 20) -> pd.DataFrame:
     return _objects_to_df(response.objects, score_attr=settings.BM25_SCORE)
 
 
-# def search_dense(client, query_vector, limit: int = 20) -> pd.DataFrame:
-#     collection = client.collections.get(settings.CHUNK_COLLECTION)
+def search_dense(client, query_vector, limit: int = 20) -> pd.DataFrame:
+    collection = client.collections.get(settings.CHUNK_COLLECTION)
 
-#     if hasattr(query_vector, "tolist"):
-#         query_vector = query_vector.tolist()
+    if hasattr(query_vector, "tolist"):
+        query_vector = query_vector.tolist()
 
-#     response = collection.query.near_vector(
-#         near_vector=query_vector,
-#         target_vector=settings.COLLECTION_VECTOR_NAME,
-#         limit=limit,
-#         return_properties=RETURN_PROPERTIES,
-#         return_metadata=[settings.DENSE_DISTANCE],    # Smaller distance means more relevant
-#     )
+    response = collection.query.near_vector(
+        near_vector=query_vector,
+        target_vector=settings.COLLECTION_VECTOR_NAME,
+        limit=limit,
+        return_properties=settings.RETURN_PROPERTIES,
+        return_metadata=[settings.DENSE_DISTANCE],    # Smaller distance means more relevant
+    )
 
-#     return _objects_to_df(response.objects, score_attr=settings.DENSE_DISTANCE)
+    return _objects_to_df(response.objects, score_attr=settings.DENSE_DISTANCE)
 
 
 # def search_hybrid(

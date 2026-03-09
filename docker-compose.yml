@@ -22,10 +22,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+      EMBEDDING_MODEL: BAAI/bge-small-en
       MODEL_CACHE_DIR: /models_cache
       HF_HOME: /models_cache
-      NORMALIZE_EMBEDDINGS: "false"
+      NORMALIZE_EMBEDDINGS: "true"
     volumes:
       - ./hf_cache:/models_cache
     healthcheck:

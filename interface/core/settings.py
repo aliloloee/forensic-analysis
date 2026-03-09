@@ -13,9 +13,12 @@ EMBEDDINGS_DIR = STATIC_DIR / "dense_embeddings.npy"
 
 
 ############ Embedding Model Settings ############
+# BATCH_SIZE = 64
+# EMBEDDING_NORMALIZED = True
 EMBEDDING_MODEL = "BAAI/bge-small-en" ## "BAAI/bge-large-en"
-EMBEDDING_NORMALIZED = True
-BATCH_SIZE = 64
+EMBEDDING_URL_BASE = "http://localhost:8000".rstrip("/")
+EMBEDDING_URL_HEALTH = F"{EMBEDDING_URL_BASE}/health"
+EMBEDDING_URL_EMBED = F"{EMBEDDING_URL_BASE}/embed"
 
 
 ############# Weaviate Settings ############
