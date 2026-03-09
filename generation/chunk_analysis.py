@@ -73,13 +73,12 @@ def _process_chunk(prompt):
 
 
 def generate_chunk_reasoning(df, hypothesis, limit=None):
-
     ## The required columns must be dynamic based on "settings.RETURN_PROPERTIES"
 
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df must be a pandas DataFrame")
 
-    required_cols = {settings.EMAIL_ID, settings.CHUNK_TEXT_SPARSE}
+    required_cols = {settings.EMAIL_ID, settings.CHUNK_INDEX, settings.CHUNK_TEXT_SPARSE}
     missing = required_cols - set(df.columns)
     if missing:
         raise ValueError(f"DataFrame is missing required columns: {missing}")
@@ -90,12 +89,15 @@ def generate_chunk_reasoning(df, hypothesis, limit=None):
 
     for i, row in rows.iterrows():
         email_id = row[settings.EMAIL_ID]
+        chunk_index = row[settings.CHUNK_INDEX]
         chunk_text = row[settings.CHUNK_TEXT_SPARSE]
 
         prompt = _build_prompt(hypothesis, chunk_text)
         llm_result = _process_chunk(prompt)
 
         llm_result[settings.EMAIL_ID] = email_id
+        llm_result[settings.CHUNK_INDEX] = chunk_index
+        # llm_result["chunk"] = chunk_text
         results.append(llm_result)
 
         print(f"Processed row {i}")

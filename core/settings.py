@@ -4,6 +4,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_DIR = BASE_DIR / "static"
 
+DEBUG = True  ## Avoid executing unnecessary and repetetive tasks while development 
+
 
 ############ Static files and directories ############
 EMAILS_CSV_PATH = STATIC_DIR / "emails.csv"  
@@ -31,11 +33,12 @@ CHUNK_COLLECTION = f"EmailChunk_{SAFE_MODEL}_{PIPELINE_VERSION}"
 
 ############## Search Settings ############
 EMAIL_ID = "email_id"
+CHUNK_INDEX = "chunk_index"
 CHUNK_TEXT_SPARSE = "chunk_text_sparse"
 RETURN_PROPERTIES = [
     # "chunk_id",
     EMAIL_ID,
-    # "chunk_index",
+    CHUNK_INDEX,
     # "chunk_base",
     CHUNK_TEXT_SPARSE,
     # "chunk_text_dense",
@@ -44,6 +47,7 @@ RETURN_PROPERTIES = [
     # "to",
     # "date",
 ]
+PER_QUERY_TOP_K = 10
 
 BM25_fields = ["chunk_text_sparse"]
 BM25_SCORE = "score"
@@ -57,6 +61,10 @@ DENSE_SCORE = BM25_SCORE
 ############# Generation Settings ############
 BASE = "http://141.55.226.254:11434"
 BASE_URL = f"{BASE}/api/generate"
+
+## Fetch available models at startup
+ALL_MODELS = []
+TAG_URL = f"{BASE}/api/tags"
 
 ## Hypothesis Expansion (HE) Settings
 HE_MODEL = "mixtral:8x22b"
