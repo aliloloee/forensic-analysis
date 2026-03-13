@@ -26,7 +26,7 @@ def retrieve_all(queries: list[str], top_k=20):
             return pd.DataFrame()
 
         hypothesis_hits = pd.concat(all_hits, ignore_index=True)
-
+        
         # return add_email_evidence(hypothesis_hits) ## Add later
         return hypothesis_hits
     finally:

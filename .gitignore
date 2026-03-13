@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Example hypotheses file
+example-hypotheses.txt
+
 # Embedding cache
 hf_cache
 hf_cache/
@@ -12,6 +15,7 @@ hf_cache/
 *.npy
 
 # ipynb file (Temporarily ignore, need to be added back after development)
+notebooks/
 *.ipynb
 
 # Distribution / packaging

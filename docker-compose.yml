@@ -28,6 +28,7 @@ services:
       NORMALIZE_EMBEDDINGS: "true"
     volumes:
       - ./hf_cache:/models_cache
+    restart: unless-stopped
     healthcheck:
       test:
         [

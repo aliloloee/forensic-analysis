@@ -8,8 +8,10 @@ from tkinter import ttk
 from app.ui.query_design_frame import QueryDesignFrame
 from app.ui.results_frame import ResultsFrame
 from app.ui.status_bar import StatusBar
+from app.ui.hypothesis_ingestion_frame import HypothesisIngestionFrame
 from app.services.query_service import generate_queries
 from app.services.rag_service import bm25_rag, dense_rag
+from app.services.hypothesis_service import add_hypothesis
 
 from core import settings
 
@@ -37,26 +39,97 @@ class App(tk.Tk):
 
     def _build_layout(self):
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(1, weight=0)
         self.columnconfigure(0, weight=1)
 
+        # Top tab bar
+        self.notebook = ttk.Notebook(self)
+        self.notebook.grid(row=0, column=0, sticky="nsew", padx=12, pady=(12, 0))
+
+        # Tabs
+        self.home_tab = ttk.Frame(self.notebook)
+        self.db_tab = ttk.Frame(self.notebook)
+
+        self.notebook.add(self.home_tab, text="Home")
+        self.notebook.add(self.db_tab, text="Database")
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+
+        # Make Home tab expandable
+        self.home_tab.rowconfigure(0, weight=1)
+        self.home_tab.rowconfigure(1, weight=1)
+        self.home_tab.columnconfigure(0, weight=1)
+
+        # Put your current Home content inside home_tab instead of self
         self.query_frame = QueryDesignFrame(
-            self,
+            self.home_tab,
             on_generate=self.handle_generate,
         )
-        self.query_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=(12, 6))
+        self.query_frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=(12, 6))
 
         self.results_frame = ResultsFrame(
-            self,
+            self.home_tab,
             on_rag_bm25=self.handle_rag_bm25,
             on_rag_dense=self.handle_rag_dense,
-            # on_show=self.handle_show,
-            # on_extract=self.handle_extract,
         )
-        self.results_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=6)
+        self.results_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=6)
 
+        # Status bar stays below tabs
         self.status_bar = StatusBar(self)
-        self.status_bar.grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 12))
+        self.status_bar.grid(row=1, column=0, sticky="ew", padx=12, pady=(6, 12))
+
+        # Make Database tab expandable
+        self.db_tab.rowconfigure(0, weight=1)
+        self.db_tab.columnconfigure(0, weight=1)
+
+        # Optional placeholder content for Hypothesis tab
+        self.hypothesis_ingestion_frame = HypothesisIngestionFrame(
+            self.db_tab,
+            on_save=self.handle_hypothesis_saving,
+        )
+        self.hypothesis_ingestion_frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=(12, 6))
+
+        # ttk.Label(self.db_tab, text="Hypothesis tab content goes here").pack(
+        #     padx=20, pady=20, anchor="nw"
+        # )
+
+    # =========================================================
+    # TAB CHANGING
+    # =========================================================
+    def _on_tab_changed(self, event):
+        # self.update_idletasks()
+        # self.geometry("")
+        selected_tab = event.widget.tab(event.widget.select(), "text")
+
+        if selected_tab == "Home":
+            self.geometry("1150x650")
+
+        elif selected_tab == "Database":
+            self.geometry("550x650")
+
+    # =========================================================
+    # SAVE HYPOTHESIS
+    # =========================================================
+    def handle_hypothesis_saving(self):
+        title = self.hypothesis_ingestion_frame.get_title_text()
+        hypothesis = self.hypothesis_ingestion_frame.get_hypothesis_text()
+        queries_raw = self.hypothesis_ingestion_frame.get_queries_text()
+
+        if not title or not hypothesis:
+            self.status_bar.set_status(f"Title or Hypothesis can not be Empty.")
+            return
+
+        try:
+            queries = json.loads(queries_raw)
+            if not isinstance(queries, list):
+                self.status_bar.set_status(f"Queries must be a valid JSON list. Example:['query 1', 'query 2']")
+                return
+
+        except Exception:
+            self.status_bar.set_status(f"Queries must be a valid JSON list. Example:['query 1', 'query 2']")
+            return
+        
+        add_hypothesis (title, hypothesis, queries)
+        self.status_bar.set_status(f"Hypothesis added successfully.")
 
     # =========================================================
     # QUERY GENERATION

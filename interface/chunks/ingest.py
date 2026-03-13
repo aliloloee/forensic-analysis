@@ -3,6 +3,20 @@ from chunks.adapters import row_to_properties
 from weaviate.util import generate_uuid5
 
 
+def ingest_hypothesis(client, title: str, hypothesis: str, queries: list[str]):
+    hypothesis_collection = client.collections.get(settings.HYPOTHESIS_COLLECTION)
+
+    result = hypothesis_collection.data.insert(
+        properties={
+            "title": title,
+            "hypothesis": hypothesis,
+            "queries": queries,
+        }
+    )
+
+    return result
+
+
 def ingest_chunks(client, chunk_df, embeddings):
 
     collection = client.collections.get(settings.CHUNK_COLLECTION)

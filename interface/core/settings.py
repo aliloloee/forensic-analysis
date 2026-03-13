@@ -32,6 +32,8 @@ PIPELINE_VERSION = "v1"
 SAFE_MODEL = EMBEDDING_MODEL.replace("/", "_").replace("-", "_")
 CHUNK_COLLECTION = f"EmailChunk_{SAFE_MODEL}_{PIPELINE_VERSION}"
 
+HYPOTHESIS_COLLECTION = 'Hypothesis'
+
 
 
 ############## Search Settings ############
