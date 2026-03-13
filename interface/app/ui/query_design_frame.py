@@ -1,7 +1,10 @@
+import json
+
 import tkinter as tk
 from tkinter import ttk
 
 from core import settings
+from app.services.hypothesis_service import get_hypothesis
 # from core.globals import context
 
 
@@ -83,6 +86,40 @@ class QueryDesignFrame(ttk.LabelFrame):
         self.model_dropdown.bind("<Button-1>", _refresh_dropdown)
         self.model_dropdown.bind("<FocusIn>", _refresh_dropdown)
         self.model_dropdown.bind("<<ComboboxSelected>>", _on_model_changed)
+
+        # Label above hypothesis dropdown
+        hypothesis_label = ttk.Label(middle_frame, text="Hypothesis selection")
+        hypothesis_label.pack(anchor="w", pady=(10, 4))
+
+        self.hypothesis_dropdown_value = tk.StringVar()
+
+        self.hypothesis_dropdown = ttk.Combobox(
+            middle_frame,
+            textvariable=self.hypothesis_dropdown_value,
+            state="readonly",
+            width=40   # increase this if needed
+        )
+        self.hypothesis_dropdown.pack(fill="x")
+        self.hypothesis_dropdown.set("Select:")
+
+        def _refresh_hypothesis_dropdown(event=None):
+            self.hypothesis_dropdown["values"] = list(settings.ALL_HYPOTHESES.keys())
+
+        def _on_hypothesis_changed(event):
+            selected_hypothesis = self.hypothesis_dropdown_value.get()
+            selected_id = settings.ALL_HYPOTHESES[selected_hypothesis]
+            hypothesis = get_hypothesis(uuid=selected_id)
+
+            self.hypothesis_text.delete("1.0", "end")
+            self.hypothesis_text.insert("end", hypothesis['hypothesis'])
+
+            self.queries_text.delete("1.0", "end")
+            self.queries_text.insert("end", json.dumps(hypothesis['queries']))
+
+        self.hypothesis_dropdown.bind("<Button-1>", _refresh_hypothesis_dropdown)
+        self.hypothesis_dropdown.bind("<FocusIn>", _refresh_hypothesis_dropdown)
+        self.hypothesis_dropdown.bind("<<ComboboxSelected>>", _on_hypothesis_changed)
+
 
         queries_frame = ttk.Frame(self)
         queries_frame.grid(row=0, column=2, sticky="nsew", padx=(10, 0))

@@ -12,6 +12,7 @@ from app.ui.hypothesis_ingestion_frame import HypothesisIngestionFrame
 from app.services.query_service import generate_queries
 from app.services.rag_service import bm25_rag, dense_rag
 from app.services.hypothesis_service import add_hypothesis
+from app.services.hypothesis_service import get_all_hypotheses
 
 from core import settings
 
@@ -36,6 +37,8 @@ class App(tk.Tk):
 
         if not settings.DEBUG:
             self._load_models()
+
+        self._load_hypotheses()
 
     def _build_layout(self):
         self.rowconfigure(0, weight=1)
@@ -327,6 +330,29 @@ class App(tk.Tk):
 
     def _update_settings(self, models):
         settings.ALL_MODELS = models
+        # self.combo["values"] = values
+        # if values:
+        #     self.combo.current(0)
+        # self.status.config(text="Loaded")
+        # self.load_button.config(state="normal")
+
+    # =========================================================
+    # LOAD HYPOTHESES
+    # =========================================================
+    def _load_hypotheses(self):
+        thread = threading.Thread(target=self._fetch_hypotheses_values, daemon=True)
+        thread.start()
+    
+    def _fetch_hypotheses_values(self):
+        try:
+            hypotheses = get_all_hypotheses()
+            self.after(0, self._update_hypotheses_settings, hypotheses)
+
+        except Exception as e:
+            print(f"Error fetching hypotheses: {e}")
+
+    def _update_hypotheses_settings(self, hypotheses):
+        settings.ALL_HYPOTHESES = hypotheses
         # self.combo["values"] = values
         # if values:
         #     self.combo.current(0)
