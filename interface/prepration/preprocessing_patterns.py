@@ -345,12 +345,6 @@ def parse_and_clean_email(raw_msg: str) -> dict:
 
     subject = headers.get("subject", "").strip()
 
-    # body_base = normalize_spaces(body)
-    # body_base = unwrap_forwarded(body_base)
-    # body_base = remove_quoted_lines(body_base)
-    # body_base = truncate_at_reply(body_base)
-
-
     body_base = drop_short_pleasantries(body)
     # body_base = drop_lonely_name_lines(body_base)
     body_base = normalize_newlines(body_base)

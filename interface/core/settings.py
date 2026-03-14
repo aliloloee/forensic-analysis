@@ -8,6 +8,7 @@ DEBUG = True  ## Avoid executing unnecessary and repetetive tasks while developm
 
 
 ############ Static files and directories ############
+# INGESTION = False
 EMAILS_CSV_PATH = STATIC_DIR / "emails.csv"  
 EMBEDDINGS_DIR = STATIC_DIR / "dense_embeddings.npy" 
 
@@ -34,6 +35,8 @@ CHUNK_COLLECTION = f"EmailChunk_{SAFE_MODEL}_{PIPELINE_VERSION}"
 
 HYPOTHESIS_COLLECTION = 'Hypothesis'
 ALL_HYPOTHESES = {}  # title: uuid
+
+EMAIL_COLLECTION = F"Email_{PIPELINE_VERSION}"
 
 
 

@@ -86,10 +86,10 @@ def build_chunk_df(
                 "email_id": email_id,
                 "chunk_index": i,
                 "chunk_base": chunk_text,   # <-- changed from chunk_text
-                "subject": row.get("subject", ""),
-                "from": row.get("from", ""),
-                "to": row.get("to", ""),
-                "date": row.get("date", ""),
+                # "subject": row.get("subject", ""),
+                # "from": row.get("from", ""),
+                # "to": row.get("to", ""),
+                # "date": row.get("date", ""),
                 "len_chunk_base": len(chunk_text),
             })
 
