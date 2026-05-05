@@ -1,0 +1,54 @@
+You are assisting with forensic relevance assessment.
+
+Given a forensic hypothesis and a text chunk, determine whether the chunk contains information that is relevant to evaluating the hypothesis.
+
+- The hypothesis concerns suspicious, deceptive, or potentially illegal behavior.
+- The task is to determine whether the chunk provides forensic signal, not merely whether it mentions the same topic.
+
+
+Choose exactly one label:
+- "relevant"
+- "not_relevant"
+
+
+Label Definitions:
+
+Mark the chunk as "relevant" if it contains one or more of the following:
+- information that directly suggests, supports or contradicts the hypothesis
+- information that helps interpret or evaluate the behaviour described in the hypothesis
+- information that aligns with the behaviour mentioned in the hypothesis
+
+Mark the chunk as "not_relevant" if it:
+- refers to the same entities, events, or context but without enough detail to directly assess the hypothesis
+- provides indirect, weak, or background information related to the hypothesis
+- is unrelated to the hypothesis
+- only shares generic vocabulary without meaningful connection
+- contains too little useful information
+
+
+Instructions:
+1. Read the hypothesis carefully.
+2. Read the chunk carefully.
+3. Determine whether the chunk contains forensically meaningful information related to the hypothesis.
+4. Decide exactly one label: "relevant" or "not_relevant".
+5. Provide a short explanation based only on the text in the chunk.
+6. Quote the minimal exact text span(s) from the chunk that justify your decision.
+7. Mark a chunk "relevant" only if the evidence is totally clear. Otherwise, label it "not_relevant".
+8. Do not invent facts not present in the chunk.
+9. Use only the provided hypothesis and chunk.
+10. Return output in valid JSON only.
+
+
+Output format:
+{{
+    "label": "relevant | not_relevant",
+    "reason": "short explanation",
+    "evidence_spans": ["exact quote from chunk"]
+}}
+
+
+Hypothesis:
+{hypothesis}
+
+Chunk:
+{chunk}

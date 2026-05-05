@@ -94,6 +94,7 @@ class App(tk.Tk):
         # Optional placeholder content for Hypothesis tab
         self.hypothesis_ingestion_frame = HypothesisIngestionFrame(
             self.hypothesis_tab,
+            on_generate=self.handle_generate,
             on_save=self.handle_hypothesis_saving,
         )
         self.hypothesis_ingestion_frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=(12, 6))
@@ -122,10 +123,10 @@ class App(tk.Tk):
         # self.geometry("")
         selected_tab = event.widget.tab(event.widget.select(), "text")
 
-        if selected_tab == "Home":
+        if selected_tab in ["Home", "Hypothesis"]:
             self.geometry("1150x650")
 
-        elif selected_tab in ["Database", "Hypothesis"]:
+        elif selected_tab == "Database":
             self.geometry("550x650")
 
     # =========================================================
@@ -134,23 +135,29 @@ class App(tk.Tk):
     def handle_hypothesis_saving(self):
         title = self.hypothesis_ingestion_frame.get_title_text()
         hypothesis = self.hypothesis_ingestion_frame.get_hypothesis_text()
-        queries_raw = self.hypothesis_ingestion_frame.get_queries_text()
+        sparse_queries_raw = self.hypothesis_ingestion_frame.get_sparse_queries_text()
+        dense_queries_raw = self.hypothesis_ingestion_frame.get_dense_queries_text()
 
         if not title or not hypothesis:
             self.status_bar.set_status(f"Title or Hypothesis can not be Empty.")
             return
 
         try:
-            queries = json.loads(queries_raw)
-            if not isinstance(queries, list):
-                self.status_bar.set_status(f"Queries must be a valid JSON list. Example:['query 1', 'query 2']")
+            sparse_queries = json.loads(sparse_queries_raw)
+            if not isinstance(sparse_queries, list):
+                self.status_bar.set_status(f"Sparse queries must be a valid JSON list. Example:['query 1', 'query 2']")
+                return
+            
+            dense_queries = json.loads(dense_queries_raw)
+            if not isinstance(dense_queries, list):
+                self.status_bar.set_status(f"Dense queries must be a valid JSON list. Example:['query 1', 'query 2']")
                 return
 
         except Exception:
             self.status_bar.set_status(f"Queries must be a valid JSON list. Example:['query 1', 'query 2']")
             return
         
-        add_hypothesis (title, hypothesis, queries)
+        add_hypothesis (title, hypothesis, sparse_queries, dense_queries)
         self.status_bar.set_status(f"Hypothesis added successfully.")
 
     # =========================================================
@@ -185,37 +192,86 @@ class App(tk.Tk):
     # =========================================================
     # QUERY GENERATION
     # =========================================================
-    def handle_generate(self, hypothesis: str):
+    def handle_generate(self, hypothesis: str, num_queries: str, model: str = settings.HE_MODEL):
         if self._query_task_running:
             return
 
         if not hypothesis.strip():
-            self.query_frame.set_queries_text("Please enter a hypothesis first.")
+            self.hypothesis_ingestion_frame.set_queries_text("Please enter a hypothesis first.")
             self.status_bar.set_status("No hypothesis entered")
             return
 
         self._query_task_running = True
         self._query_start_time = time.time()
 
-        self.query_frame.set_generate_enabled(False)
-        self.query_frame.set_hypothesis_enabled(False)
-        self.query_frame.set_queries_text("Generating queries...\nPlease wait.")
+        self.hypothesis_ingestion_frame.set_generate_enabled(False)
+        self.hypothesis_ingestion_frame.set_hypothesis_enabled(False)
+        self.hypothesis_ingestion_frame.set_queries_text("Generating queries...\nPlease wait.")
 
         self._update_query_elapsed_time()
 
         thread = threading.Thread(
             target=self._run_generate_background,
-            args=(hypothesis,),
+            args=(hypothesis, num_queries, model),
             daemon=True,
         )
         thread.start()
 
-    def _run_generate_background(self, hypothesis: str):
+    def _run_generate_background(self, hypothesis: str, num_queries: str, model: str = settings.HE_MODEL):
         try:
-            queries = generate_queries(hypothesis)
-            self.after(0, self._on_generate_finished, queries)
+            queries = generate_queries(hypothesis, num_queries, model, template_path=settings.HE_PROMPT_TEMPLATE_SPARSE)
+            self.after(0, self._on_sparse_generate_finished, queries)
         except Exception as exc:
             self.after(0, self._on_generate_failed, str(exc))
+
+        try:
+            queries = generate_queries(hypothesis, num_queries, model, template_path=settings.HE_PROMPT_TEMPLATE_DENSE)
+            self.after(0, self._on_dense_generate_finished, queries)
+        except Exception as exc:
+            self.after(0, self._on_generate_failed, str(exc))
+
+    def _on_sparse_generate_finished(self, queries):
+        self._set_sparse_queries(queries)
+
+    def _on_dense_generate_finished(self, queries):
+        self._set_dense_queries(queries)
+        self._query_task_running = False
+
+        if self._query_timer_job is not None:
+            self.after_cancel(self._query_timer_job)
+            self._query_timer_job = None
+
+        self.hypothesis_ingestion_frame.set_generate_enabled(True)
+        self.hypothesis_ingestion_frame.set_hypothesis_enabled(True)
+
+        elapsed = int(time.time() - self._query_start_time)
+        self.status_bar.set_status(f"Queries generated in {self._format_seconds(elapsed)}")
+
+        self._query_start_time = None
+
+    def _set_sparse_queries(self, queries):
+        self.hypothesis_ingestion_frame.sparse_queries_text.config(state="normal")
+        self.hypothesis_ingestion_frame.sparse_queries_text.delete("1.0", "end")
+
+        if isinstance(queries, str):
+            self.hypothesis_ingestion_frame.sparse_queries_text.insert("end", queries)
+        else:
+            for i, query in enumerate(queries, start=1):
+                self.hypothesis_ingestion_frame.sparse_queries_text.insert("end", f"{i}. {query}\n\n")
+
+        self.hypothesis_ingestion_frame.sparse_queries_text.see("end")
+
+    def _set_dense_queries(self, queries):
+        self.hypothesis_ingestion_frame.dense_queries_text.config(state="normal")
+        self.hypothesis_ingestion_frame.dense_queries_text.delete("1.0", "end")
+
+        if isinstance(queries, str):
+            self.hypothesis_ingestion_frame.dense_queries_text.insert("end", queries)
+        else:
+            for i, query in enumerate(queries, start=1):
+                self.hypothesis_ingestion_frame.dense_queries_text.insert("end", f"{i}. {query}\n\n")
+
+        self.hypothesis_ingestion_frame.dense_queries_text.see("end")
 
     def _on_generate_finished(self, queries):
         self._query_task_running = False
@@ -224,9 +280,9 @@ class App(tk.Tk):
             self.after_cancel(self._query_timer_job)
             self._query_timer_job = None
 
-        self.query_frame.set_queries_list(queries)
-        self.query_frame.set_generate_enabled(True)
-        self.query_frame.set_hypothesis_enabled(True)
+        self.hypothesis_ingestion_frame.set_queries_list(queries)
+        self.hypothesis_ingestion_frame.set_generate_enabled(True)
+        self.hypothesis_ingestion_frame.set_hypothesis_enabled(True)
 
         elapsed = int(time.time() - self._query_start_time)
         self.status_bar.set_status(f"Queries generated in {self._format_seconds(elapsed)}")
@@ -240,9 +296,9 @@ class App(tk.Tk):
             self.after_cancel(self._query_timer_job)
             self._query_timer_job = None
 
-        self.query_frame.set_queries_text(f"Query generation failed:\n{error_message}")
-        self.query_frame.set_generate_enabled(True)
-        self.query_frame.set_hypothesis_enabled(True)
+        self.hypothesis_ingestion_frame.set_queries_text(f"Query generation failed:\n{error_message}")
+        self.hypothesis_ingestion_frame.set_generate_enabled(True)
+        self.hypothesis_ingestion_frame.set_hypothesis_enabled(True)
         self.status_bar.set_status("Query generation failed")
 
         self._query_start_time = None

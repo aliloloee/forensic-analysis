@@ -20,10 +20,15 @@ def create_hypothesis_collection(client):
                 description="A forensic hypothesis derived from the email",
             ),
             Property(
-                name="queries",
+                name="sparse_queries",
                 data_type=DataType.TEXT_ARRAY,
-                description="A list of search queries associated with the hypothesis",
+                description="A list of sparse queries associated with the hypothesis",
             ),
+            Property(
+                name="dense_queries",
+                data_type=DataType.TEXT_ARRAY,
+                description="A list of dense queries associated with the hypothesis",
+            )
         ],
     )
 

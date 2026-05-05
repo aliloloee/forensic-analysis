@@ -13,22 +13,21 @@ def _load_prompt_template(path):
         return f.read().strip()
 
 
-def _build_prompt(hypothesis, num_queries, max_query_length, template_path=settings.HE_PROMPT_TEMPLATE):
+def _build_prompt(hypothesis, num_queries, template_path):
     template = _load_prompt_template(template_path)
     return template.format(
         hypothesis=hypothesis,
         num_queries=num_queries,
-        max_query_length=max_query_length
     )
 
 
 def generate_queries(
                     hypothesis,
-                    num_queries=settings.HE_QUERIES,
-                    max_query_length=settings.HE_MAX_LENGTH,
-                    model=settings.HE_MODEL
+                    num_queries,
+                    model,
+                    template_path
                 ):
-    prompt = _build_prompt(hypothesis, num_queries, max_query_length)
+    prompt = _build_prompt(hypothesis, num_queries, template_path)
 
     payload = {
         "model": model,

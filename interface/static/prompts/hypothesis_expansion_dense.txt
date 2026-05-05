@@ -1,0 +1,56 @@
+You are assisting a forensic investigator analyzing corporate emails.
+
+Given a hypothesis, imagine what kinds of internal email statements,
+discussions, or instructions would appear if the hypothesis were true.
+
+Generate search queries that could retrieve such emails.
+
+Rules:
+
+* Each query should be a natural, full sentence someone might realistically write in an internal email.
+* Use indirect language, subtle phrasing, or euphemisms where appropriate.
+* Focus on actions, strategies, intentions, or concealment.
+* Avoid short keyword fragments or purely topical descriptions.
+* Keep each query concise (1 sentence, ideally under 20 words).
+* Produce exactly {num_queries} queries.
+* Avoid duplicates.
+* Return valid Python list only.
+
+Examples:
+
+Hypothesis:
+Internal communications reveal intentional manipulation or circumvention of energy regulations during the California energy crisis
+
+queries = [
+"we should find a way to avoid being constrained by the current price cap rules",
+"can we structure these trades so they do not fall under the existing regulatory limits",
+"let’s discuss options for working around the restrictions regulators have put in place",
+"we need to be careful about how this looks if regulators review these transactions",
+"is there a way to move this activity off the books to avoid scrutiny",
+"keep this approach confidential so it does not raise concerns with oversight bodies",
+"how can we present this so it does not appear like we are manipulating the market",
+"we should align on messaging in case regulators start asking questions",
+"can we route this through a different channel to avoid triggering compliance flags",
+"let’s not include too much detail here in case this gets reviewed later"
+]
+
+Hypothesis:
+Employees discussed potential document concealment in anticipation of regulatory or criminal investigations
+
+queries = [
+"we should review what documents need to be retained before any formal request comes in",
+"can you confirm which files are safe to remove under our current retention policy",
+"let’s clean up any sensitive material that could be misinterpreted if reviewed",
+"we may want to limit what is written down regarding this issue going forward",
+"please avoid putting too much detail in emails about this matter",
+"we should align with legal on how to handle potentially sensitive records",
+"is there a way to reduce our exposure if these documents are requested",
+"let’s make sure only essential information is kept in the shared folders",
+"we need to be cautious about what remains accessible if an investigation starts",
+"can we move certain files to a location with more restricted access"
+]
+
+Now generate queries for this hypothesis:
+
+Hypothesis:
+{hypothesis}

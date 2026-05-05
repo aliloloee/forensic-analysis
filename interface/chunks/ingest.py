@@ -3,14 +3,15 @@ from chunks.adapters import row_to_properties, row_to_properties_email_level
 from weaviate.util import generate_uuid5
 
 
-def ingest_hypothesis(client, title: str, hypothesis: str, queries: list[str]):
+def ingest_hypothesis(client, title: str, hypothesis: str, sparse_queries: list[str], dense_queries: list[str]):
     hypothesis_collection = client.collections.get(settings.HYPOTHESIS_COLLECTION)
 
     result = hypothesis_collection.data.insert(
         properties={
             "title": title,
             "hypothesis": hypothesis,
-            "queries": queries,
+            "sparse_queries": sparse_queries,
+            "dense_queries": dense_queries,
         }
     )
 

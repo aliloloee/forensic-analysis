@@ -8,7 +8,7 @@ from chunks.retrieve import list_hypotheses, get_hypothesis_by_uuid
 
 
 
-def add_hypothesis(title, hypothesis, queries):
+def add_hypothesis(title, hypothesis, sparse_queries, dense_queries):
     client = get_client()
     create_hypothesis_collection(client)
 
@@ -16,7 +16,8 @@ def add_hypothesis(title, hypothesis, queries):
         client,
         title=title,
         hypothesis=hypothesis,
-        queries=queries,
+        sparse_queries=sparse_queries,
+        dense_queries=dense_queries,
     )
 
     # Update setting

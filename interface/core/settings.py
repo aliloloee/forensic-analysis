@@ -4,13 +4,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_DIR = BASE_DIR / "static"
 
-DEBUG = True  ## Avoid executing unnecessary and repetetive tasks while development 
+DEBUG = False  ## Avoid executing unnecessary and repetetive tasks while development 
 
 
 ############ Static files and directories ############
 # INGESTION = False
-EMAILS_CSV_PATH = STATIC_DIR / "emails.csv"  
-EMBEDDINGS_DIR = STATIC_DIR / "dense_embeddings.npy" 
+# EMAILS_CSV_PATH = STATIC_DIR / "emails.csv"  
+# EMBEDDINGS_DIR = STATIC_DIR / "dense_embeddings.npy" 
 
 
 ############ Embedding Model Settings ############
@@ -49,14 +49,16 @@ RETURN_PROPERTIES = [
     EMAIL_ID,
     CHUNK_INDEX,
     # "chunk_base",
+    "topic",
+    "info",
     CHUNK_TEXT_SPARSE,
-    # "chunk_text_dense",
+    "chunk_text_dense",
     # "subject",
     # "from",
     # "to",
     # "date",
 ]
-PER_QUERY_TOP_K = 10
+PER_QUERY_TOP_K = 20
 
 BM25_fields = ["chunk_text_sparse"]
 BM25_SCORE = "score"
@@ -76,11 +78,13 @@ ALL_MODELS = []
 TAG_URL = f"{BASE}/api/tags"
 
 ## Hypothesis Expansion (HE) Settings
-HE_MODEL = "mixtral:8x22b"
+HE_MODEL = "qwen3.5:latest"
 HE_QUERIES = 10
-HE_MAX_LENGTH = 5
-HE_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "hypothesis_expansion.txt"
+# HE_MAX_LENGTH_SPARSE = 5 # Harcoded in the prompts
+# HE_MAX_LENGTH_DENSE  = 20 # Harcoded in the prompts
+HE_PROMPT_TEMPLATE_SPARSE = STATIC_DIR / "prompts" / "hypothesis_expansion_sparse.txt"
+HE_PROMPT_TEMPLATE_DENSE = STATIC_DIR / "prompts" / "hypothesis_expansion_dense.txt"
 
 ## Chunk Generation (CG) Settings
 CG_MODEL = "llama3:latest"
-CG_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "chunk_analysis.txt"
+CG_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "chunk_analysis_2.txt"

@@ -9,7 +9,7 @@ Rules:
 - Queries should resemble plausible phrases employees might write in emails, including indirect language or euphemisms.
 - Focus on actions, strategies, or concealment.
 - Avoid generic topic descriptions.
-- Keep queries short, maximum {max_query_length} words.
+- Keep queries short, maximum 6 words.
 - Produce exactly {num_queries} queries.
 - Avoid duplicates.
 - Return valid Python list only.

@@ -3,11 +3,11 @@ from generation.hypothesis_expansion import generate_queries as generate_queries
 
 
 
-def generate_queries(hypothesis: str):
+def generate_queries(hypothesis: str, num_queries: str, model: str, template_path: str):
     queries = generate_queries_core(
         hypothesis,
-        num_queries=settings.HE_QUERIES,
-        max_query_length=settings.HE_MAX_LENGTH,
-        model=settings.HE_MODEL
+        num_queries=num_queries,
+        model=model,
+        template_path=template_path
         )
     return queries
