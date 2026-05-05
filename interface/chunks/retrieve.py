@@ -24,5 +24,6 @@ def get_hypothesis_by_uuid(client, hypothesis_uuid):
         "uuid": str(obj.uuid),
         "title": props.get("title"),
         "hypothesis": props.get("hypothesis"),
-        "queries": props.get("queries", []),
+        "sparse_queries": props.get("sparse_queries", []),
+        "dense_queries": props.get("dense_queries", []),
     }
