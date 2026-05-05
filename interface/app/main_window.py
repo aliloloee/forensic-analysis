@@ -5,14 +5,19 @@ import requests
 import tkinter as tk
 from tkinter import ttk
 
+import pandas as pd
+import numpy as np
+
 from app.ui.query_design_frame import QueryDesignFrame
 from app.ui.results_frame import ResultsFrame
 from app.ui.status_bar import StatusBar
 from app.ui.hypothesis_ingestion_frame import HypothesisIngestionFrame
+from app.ui.data_ingestion_frame import DataIngestionFrame
 from app.services.query_service import generate_queries
 from app.services.rag_service import bm25_rag, dense_rag
 from app.services.hypothesis_service import add_hypothesis
 from app.services.hypothesis_service import get_all_hypotheses
+from app.services.data_service import ingest_data
 
 from core import settings
 
@@ -51,10 +56,12 @@ class App(tk.Tk):
 
         # Tabs
         self.home_tab = ttk.Frame(self.notebook)
-        self.db_tab = ttk.Frame(self.notebook)
+        self.database_tab = ttk.Frame(self.notebook)
+        self.hypothesis_tab = ttk.Frame(self.notebook)
 
         self.notebook.add(self.home_tab, text="Home")
-        self.notebook.add(self.db_tab, text="Database")
+        self.notebook.add(self.database_tab, text="Database")
+        self.notebook.add(self.hypothesis_tab, text="Hypothesis")
         self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
         # Make Home tab expandable
@@ -80,20 +87,32 @@ class App(tk.Tk):
         self.status_bar = StatusBar(self)
         self.status_bar.grid(row=1, column=0, sticky="ew", padx=12, pady=(6, 12))
 
-        # Make Database tab expandable
-        self.db_tab.rowconfigure(0, weight=1)
-        self.db_tab.columnconfigure(0, weight=1)
+        # Make Hypothesis tab expandable
+        self.hypothesis_tab.rowconfigure(0, weight=1)
+        self.hypothesis_tab.columnconfigure(0, weight=1)
 
         # Optional placeholder content for Hypothesis tab
         self.hypothesis_ingestion_frame = HypothesisIngestionFrame(
-            self.db_tab,
+            self.hypothesis_tab,
             on_save=self.handle_hypothesis_saving,
         )
         self.hypothesis_ingestion_frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=(12, 6))
 
-        # ttk.Label(self.db_tab, text="Hypothesis tab content goes here").pack(
+        # ttk.Label(self.hypothesis_tab, text="Hypothesis tab content goes here").pack(
         #     padx=20, pady=20, anchor="nw"
         # )
+
+
+        # Make Database tab expandable
+        self.database_tab.rowconfigure(0, weight=1)
+        self.database_tab.columnconfigure(0, weight=1)
+
+        # Optional placeholder content for Hypothesis tab
+        self.data_ingestion_frame = DataIngestionFrame(
+            self.database_tab,
+            on_save=self.handle_data_ingestion,
+        )
+        self.data_ingestion_frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=(12, 6))
 
     # =========================================================
     # TAB CHANGING
@@ -106,7 +125,7 @@ class App(tk.Tk):
         if selected_tab == "Home":
             self.geometry("1150x650")
 
-        elif selected_tab == "Database":
+        elif selected_tab in ["Database", "Hypothesis"]:
             self.geometry("550x650")
 
     # =========================================================
@@ -133,6 +152,35 @@ class App(tk.Tk):
         
         add_hypothesis (title, hypothesis, queries)
         self.status_bar.set_status(f"Hypothesis added successfully.")
+
+    # =========================================================
+    # DATA INGESTION
+    # =========================================================
+    def handle_data_ingestion(self):
+        emails_file = self.data_ingestion_frame.emails_file
+        chunks_file = self.data_ingestion_frame.chunks_file
+        embedding1_file = self.data_ingestion_frame.embedding1_file
+        embedding2_file = self.data_ingestion_frame.embedding2_file
+
+        # Check if all files are selected
+        if not all([emails_file, chunks_file, embedding1_file]):
+            self.status_bar.set_status("Please select all files before adding to database.")
+            return
+
+        try:
+            emails_data = pd.read_csv(emails_file)
+            chunks_data = pd.read_csv(chunks_file)
+            embedding1_data = np.load(embedding1_file)
+            if embedding2_file:
+                embedding2_data = np.load(embedding2_file)
+
+            self.status_bar.set_status("Files read successfully. Ready to add to database.")
+
+        except Exception as e:
+            self.status_bar.set_status(f"Error reading files: {str(e)}")
+
+        ingest_data(emails_data, chunks_data, embedding1_data, embedding2_data if embedding2_file else None)
+        self.status_bar.set_status("Data ingestion process completed. Check console for details.")
 
     # =========================================================
     # QUERY GENERATION

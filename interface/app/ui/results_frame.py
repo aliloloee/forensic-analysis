@@ -176,6 +176,7 @@ class ResultsFrame(ttk.LabelFrame):
         self.results_text.see("1.0")
 
     def _render_single_result(self, index, item):
+        print(item)
         label = item.get("label")
         json_valid = item.get("json_valid", False)
         reason = item.get("reason")
