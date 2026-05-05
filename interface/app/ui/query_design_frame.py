@@ -10,7 +10,7 @@ from app.services.hypothesis_service import get_hypothesis
 
 class QueryDesignFrame(ttk.LabelFrame):
     def __init__(self, parent, on_generate):
-        super().__init__(parent, text="Query Design", padding=12)
+        super().__init__(parent, text="Query Demonstration", padding=12)
 
         self.on_generate_callback = on_generate
 
