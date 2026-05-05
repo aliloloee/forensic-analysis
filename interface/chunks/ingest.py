@@ -44,7 +44,7 @@ def ingest_chunks(client, chunk_df, embeddings):
                 uuid=generate_uuid5(
                         {
                             "email_id": int(row["email_id"]),
-                            "chunk_index": int(row["chunk_index"]),
+                            "chunk_id": int(row["chunk_id"].split(":")[1]),
                         }
                     ),
             )

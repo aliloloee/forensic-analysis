@@ -6,16 +6,12 @@ def row_to_properties(row) -> dict:
     return {
         "chunk_id": str(row["chunk_id"]),
         "email_id": int(row["email_id"]),
-        "chunk_index": int(row["chunk_index"]),
 
-        "chunk_base": row["chunk_base"],
-        "chunk_text_sparse": row["chunk_text_sparse"],
-        "chunk_text_dense": row["chunk_text_dense"],
+        "chunk_sparse": row["chunk_sparse"],
+        "chunk_dense": row["chunk_dense"],
 
-        # "subject": row.get("subject", ""),
-        # "from": row.get("from", ""),
-        # "to": row.get("to", ""),
-        # "date": row.get("date", ""),
+        "length": int(row["length"]),
+        "subject": row.get("subject", ""),
     }
 
 
@@ -26,17 +22,13 @@ def row_to_properties_email_level(row) -> dict:
     """
     return {
         "email_id": int(row["email_id"]),
-        "topic": int(row["topic"]),
-        "responsiveness": int(row["responsiveness"]),
+        "Annotation": row["Annotation"],
 
-        "info": row["info"],
-
+        "docID": row.get("docID", ""),
         "from": row.get("from", ""),
         "date": row.get("date", ""),
         "to": row.get("to", ""),
         "subject": row.get("subject", ""),
 
-        "message": row["message"],
-        "text_base": row["text_base"],
-        "body_base": row["body_base"]
+        "message": row["message"]
     }
