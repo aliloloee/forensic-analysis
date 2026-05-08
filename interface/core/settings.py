@@ -1,9 +1,7 @@
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 STATIC_DIR = BASE_DIR / "static"
-
 DEBUG = False  ## Avoid executing unnecessary and repetetive tasks while development 
 
 
@@ -42,31 +40,30 @@ EMAIL_COLLECTION = F"Email_{PIPELINE_VERSION}"
 
 ############## Search Settings ############
 EMAIL_ID = "email_id"
-CHUNK_INDEX = "chunk_index"
-CHUNK_TEXT_SPARSE = "chunk_text_sparse"
+CHUNK_INDEX = "chunk_id"
+CHUNK_TEXT_SPARSE = "chunk_sparse"
+CHUNK_TEXT_DENSE = "chunk_dense"
 RETURN_PROPERTIES = [
-    # "chunk_id",
     EMAIL_ID,
     CHUNK_INDEX,
-    # "chunk_base",
-    "topic",
-    "info",
     CHUNK_TEXT_SPARSE,
-    "chunk_text_dense",
-    # "subject",
-    # "from",
-    # "to",
-    # "date",
+    CHUNK_TEXT_DENSE
 ]
-PER_QUERY_TOP_K = 20
+TOP_K_CHUNKS = 50
 
-BM25_fields = ["chunk_text_sparse"]
+# BM25_fields = ["chunk_sparse"]
 BM25_SCORE = "score"
 
 DENSE_DISTANCE = "distance"
 DENSE_SCORE = BM25_SCORE
 
 
+BM25_RETRIEVED_CHUNKS_KEY = "bm25_retrieved_chunks"
+DENSE_RETRIEVED_CHUNKS_KEY = "dense_retrieved_chunks"
+HYBRID_RETRIEVED_CHUNKS_KEY = "hybrid_retrieved_chunks"
+
+# RRF Constant
+RRF_CONSTANT = 60
 
 
 ############# Generation Settings ############
@@ -88,3 +85,6 @@ HE_PROMPT_TEMPLATE_DENSE = STATIC_DIR / "prompts" / "hypothesis_expansion_dense.
 ## Chunk Generation (CG) Settings
 CG_MODEL = "llama3:latest"
 CG_PROMPT_TEMPLATE = STATIC_DIR / "prompts" / "chunk_analysis_2.txt"
+
+## Inference Timeout
+INFERENCE_TIMEOUT = 4*60

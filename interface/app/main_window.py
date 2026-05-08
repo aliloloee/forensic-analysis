@@ -7,6 +7,7 @@ from tkinter import ttk
 
 import pandas as pd
 import numpy as np
+import json
 
 from app.ui.query_design_frame import QueryDesignFrame
 from app.ui.results_frame import ResultsFrame
@@ -14,13 +15,16 @@ from app.ui.status_bar import StatusBar
 from app.ui.hypothesis_ingestion_frame import HypothesisIngestionFrame
 from app.ui.data_ingestion_frame import DataIngestionFrame
 from app.services.query_service import generate_queries
-from app.services.rag_service import bm25_rag, dense_rag
+from app.services.retrieve_service import bm25_retrieve, dense_retrieve
 from app.services.hypothesis_service import add_hypothesis
 from app.services.hypothesis_service import get_all_hypotheses
 from app.services.data_service import ingest_data
 
 from core import settings
+from core.globals import context
 
+from retrieval.hybrid import rrf_hybrid
+from generation.chunk_analysis import process_chunk, build_prompt
 
 class App(tk.Tk):
     def __init__(self):
@@ -78,8 +82,10 @@ class App(tk.Tk):
 
         self.results_frame = ResultsFrame(
             self.home_tab,
-            on_rag_bm25=self.handle_rag_bm25,
-            on_rag_dense=self.handle_rag_dense,
+            on_retrieve_bm25=self.handle_retrieve_bm25,
+            on_retrieve_dense=self.handle_retrieve_dense,
+            on_retrieve_hybrid=self.handle_retrieve_hybrid,
+            on_generate=self.handle_generate_inference
         )
         self.results_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=6)
 
@@ -315,75 +321,149 @@ class App(tk.Tk):
     # =========================================================
     # RAG
     # =========================================================
-    def handle_rag_bm25(self):
+    def handle_retrieve_bm25(self):
         if self._rag_task_running:
             return
 
         self._rag_task_running = True
         self._rag_start_time = time.time()
 
-        self.results_frame.set_controls_enabled(False)
-        self.results_frame.set_results_enabled(False)
+        self.results_frame.generate_button_bm25.config(state="disabled")
 
         self._update_rag_elapsed_time()
 
-        thread = threading.Thread(target=self._run_rag_bm25_background, daemon=True)
+        thread = threading.Thread(target=self._run_retrieve_bm25_background, daemon=True)
         thread.start()
 
-    def _run_rag_bm25_background(self):
+    def _run_retrieve_bm25_background(self):
         try:
-            hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
-            queries = json.loads(self.query_frame.queries_text.get("1.0", "end-1c").strip())
-            results = bm25_rag(
-                    hypothesis=hypothesis, 
+            # hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
+            queries = json.loads(self.query_frame.sparse_queries_text.get("1.0", "end-1c").strip())
+            top_k = 2*self.results_frame.get_top_k_chunks_number()
+            results = bm25_retrieve(
+                    # hypothesis=hypothesis, 
                     queris=queries,
-                    top_k=settings.PER_QUERY_TOP_K
+                    top_k=top_k
                     )
-            self.after(0, self._on_rag_finished, results)
+            self.after(0, self._on_retrieval_finished, results, "BM25")
         except Exception as exc:
-            self.after(0, self._on_rag_failed, str(exc))
+            self.after(0, self._on_retrieval_failed, str(exc))
 
-    def handle_rag_dense(self):
+        # try:
+        #     hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
+        #     queries = json.loads(self.query_frame.sparse_queries_text.get("1.0", "end-1c").strip())
+        #     top_k = 2*self.results_frame.get_top_k_chunks_number()
+        #     results = bm25_retrieve(
+        #             hypothesis=hypothesis, 
+        #             queris=queries,
+        #             top_k=settings.PER_QUERY_TOP_K
+        #             )
+        #     self.after(0, self._on_rag_finished, results)
+        # except Exception as exc:
+        #     self.after(0, self._on_rag_failed, str(exc))
+
+    def handle_retrieve_dense(self):
         if self._rag_task_running:
             return
 
         self._rag_task_running = True
         self._rag_start_time = time.time()
 
-        self.results_frame.set_controls_enabled(False)
-        self.results_frame.set_results_enabled(False)
+        self.results_frame.generate_button_dense.config(state="disabled")
 
         self._update_rag_elapsed_time()
 
-        thread = threading.Thread(target=self._run_rag_dense_background, daemon=True)
+        thread = threading.Thread(target=self._run_retrieve_dense_background, daemon=True)
         thread.start()
 
-    def _run_rag_dense_background(self):
+    def _run_retrieve_dense_background(self):
         try:
-            hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
-            queries = json.loads(self.query_frame.queries_text.get("1.0", "end-1c").strip())
-            results = dense_rag(
-                    hypothesis=hypothesis, 
+            # hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
+            queries = json.loads(self.query_frame.dense_queries_text.get("1.0", "end-1c").strip())
+            top_k = 2*self.results_frame.get_top_k_chunks_number()
+            results = dense_retrieve(
+                    # hypothesis=hypothesis, 
                     queris=queries,
-                    top_k=settings.PER_QUERY_TOP_K
+                    top_k=top_k
                     )
-            self.after(0, self._on_rag_finished, results)
+            self.after(0, self._on_retrieval_finished, results, "Dense")
         except Exception as exc:
-            self.after(0, self._on_rag_failed, str(exc))
+            self.after(0, self._on_retrieval_failed, str(exc))
 
-    def _on_rag_finished(self, results):
+    def handle_retrieve_hybrid(self):
+        if self._rag_task_running:
+            return
+
+        self._rag_task_running = True
+        self._rag_start_time = time.time()
+
+        self.results_frame.generate_button_hybrid.config(state="disabled")
+
+        self._update_rag_elapsed_time()
+
+        thread = threading.Thread(target=self._run_retrieve_hybrid_background, daemon=True)
+        thread.start()
+
+    def _run_retrieve_hybrid_background(self):
+        try:
+            # hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
+            sparse_queries = json.loads(self.query_frame.sparse_queries_text.get("1.0", "end-1c").strip())
+            dense_queries = json.loads(self.query_frame.dense_queries_text.get("1.0", "end-1c").strip())
+            top_k = 2*self.results_frame.get_top_k_chunks_number()
+            bm25_results = bm25_retrieve(
+                    # hypothesis=hypothesis, 
+                    queris=sparse_queries,
+                    top_k=top_k
+                    )
+            dense_results = dense_retrieve(
+                    # hypothesis=hypothesis, 
+                    queris=dense_queries,
+                    top_k=top_k
+                    )
+            
+            results = rrf_hybrid(bm25_results, dense_results)
+            # print(results)
+            results.to_csv(
+                settings.BASE_DIR/ 'hybrid_retrieval_results.csv',
+                index=False,
+                encoding="utf-8",
+            )
+
+            self.after(0, self._on_retrieval_finished, results, "Hybrid")
+        except Exception as exc:
+            self.after(0, self._on_retrieval_failed, str(exc))
+
+    def _on_retrieval_finished(self, results, method):
         self._rag_task_running = False
 
         if self._rag_timer_job is not None:
             self.after_cancel(self._rag_timer_job)
             self._rag_timer_job = None
 
-        self.results_frame.set_results_list(results)
-        self.results_frame.set_results_enabled(True)
-        self.results_frame.set_controls_enabled(True)
+        if method == "BM25":
+            self.results_frame.generate_button_bm25.config(state="normal")
+            context.add(settings.BM25_RETRIEVED_CHUNKS_KEY, results)  # "results" is Pandas Dataframe
+        elif method == "Dense":
+            self.results_frame.generate_button_dense.config(state="normal")
+            context.add(settings.DENSE_RETRIEVED_CHUNKS_KEY, results)
+        elif method == "Hybrid":
+            self.results_frame.generate_button_hybrid.config(state="normal")
+            context.add(settings.DENSE_RETRIEVED_CHUNKS_KEY, results)
 
         elapsed = int(time.time() - self._rag_start_time)
-        self.status_bar.set_status(f"Results retrieved in {self._format_seconds(elapsed)}")
+        self.status_bar.set_status(f"Retrieval completed with {len(results)} hits in {self._format_seconds(elapsed)} for {method}")
+
+        self._rag_start_time = None
+
+    def _on_retrieval_failed(self, error_message: str):
+        self._rag_task_running = False
+
+        if self._rag_timer_job is not None:
+            self.after_cancel(self._rag_timer_job)
+            self._rag_timer_job = None
+
+        print(f"Retrieval failed: {error_message}")
+        self.status_bar.set_status("Retrieval failed")
 
         self._rag_start_time = None
 
@@ -409,6 +489,95 @@ class App(tk.Tk):
         self.status_bar.set_status(f"Processing... elapsed: {self._format_seconds(elapsed)}")
 
         self._rag_timer_job = self.after(1000, self._update_rag_elapsed_time)
+
+    def handle_generate_inference(self, method):
+        if self._rag_task_running:
+            return
+
+        self._rag_task_running = True
+        self._rag_start_time = time.time()
+
+        top_k = self.results_frame.get_top_k_chunks_number()
+
+        hypothesis = self.query_frame.hypothesis_text.get("1.0", "end-1c").strip()
+        if hypothesis.strip() == "":
+            self.status_bar.set_status(f"No hypothesis found")
+            return
+
+        if method == "BM25":
+            # need to save only top_k
+            results = context.get(settings.BM25_RETRIEVED_CHUNKS_KEY)
+        elif method == "Dense":
+            # need to save only top_k
+            results = context.get(settings.DENSE_RETRIEVED_CHUNKS_KEY)
+        elif method == "Hybrid":
+            # need to save only top_k
+            results = context.get(settings.DENSE_RETRIEVED_CHUNKS_KEY)
+
+        self._update_rag_elapsed_time()
+
+        thread = threading.Thread(
+            target=self._run_generate_inference,
+            kwargs={'results': results, 'hypothesis': hypothesis, 'limit':int(top_k), 'method': method},
+            daemon=True
+            )
+        thread.start()
+
+    def _run_generate_inference(self, **kwargs):
+        df = kwargs.get("results")
+        hypothesis = kwargs.get("hypothesis")
+        limit = kwargs.get("limit", None)
+        method = kwargs.get("method")
+
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("df must be a pandas DataFrame")
+
+        required_cols = {settings.EMAIL_ID, settings.CHUNK_INDEX, settings.CHUNK_TEXT_SPARSE}
+        missing = required_cols - set(df.columns)
+        if missing:
+            raise ValueError(f"DataFrame is missing required columns: {missing}")
+        
+        # Set header in results text frame
+        self.results_frame.set_results_header(method)
+
+        results = []
+        rows = df if limit is None else df.head(limit)
+
+        for i, row in rows.iterrows():
+            email_id = row[settings.EMAIL_ID]
+            chunk_index = row[settings.CHUNK_INDEX]
+            chunk_text = row[settings.CHUNK_TEXT_SPARSE]
+
+            prompt = build_prompt(hypothesis, chunk_text)
+            try:
+                llm_result = process_chunk(prompt)
+            except Exception as exc:
+                print(f"Inference faild for chunk {chunk_index} due to {exc}")
+                continue
+
+            llm_result[settings.EMAIL_ID] = email_id
+            llm_result[settings.CHUNK_INDEX] = chunk_index
+            # llm_result["chunk"] = chunk_text
+            
+            results.append(llm_result)
+            self.results_frame.set_results_list(llm_result, index=i+1)
+        
+        self.after(0, self._on_rag_finished, results, "Hybrid")
+
+    def _on_rag_finished(self, results, method):
+        self._rag_task_running = False
+
+        if self._rag_timer_job is not None:
+            self.after_cancel(self._rag_timer_job)
+            self._rag_timer_job = None
+
+        with open(settings.BASE_DIR / f'{method}_inference_results.json', 'w') as f:
+            json.dump(results, f)
+
+        elapsed = int(time.time() - self._rag_start_time)
+        self.status_bar.set_status(f"Inference generated in {self._format_seconds(elapsed)}")
+
+        self._rag_start_time = None
 
     # =========================================================
     # LOAD MODELS

@@ -1,6 +1,8 @@
 import pandas as pd
 from core import settings
 
+from weaviate.classes.query import Filter
+
 
 def _objects_to_df(objects, score_attr):
     rows = []
@@ -33,8 +35,9 @@ def search_bm25(client, query: str, limit: int = 20) -> pd.DataFrame:
 
     response = collection.query.bm25(
         query=query,
-        query_properties=settings.BM25_fields,
+        query_properties=[settings.CHUNK_TEXT_SPARSE],
         limit=limit,
+        # filters=Filter.by_property("topic").equal(204),
         return_properties=settings.RETURN_PROPERTIES,
         return_metadata=[settings.BM25_SCORE],  # Higher score means more relevant
     )
@@ -52,34 +55,9 @@ def search_dense(client, query_vector, limit: int = 20) -> pd.DataFrame:
         near_vector=query_vector,
         target_vector=settings.COLLECTION_VECTOR_NAME,
         limit=limit,
+        # filters=Filter.by_property("topic").equal(204),
         return_properties=settings.RETURN_PROPERTIES,
         return_metadata=[settings.DENSE_DISTANCE],    # Smaller distance means more relevant
     )
 
     return _objects_to_df(response.objects, score_attr=settings.DENSE_DISTANCE)
-
-
-# def search_hybrid(
-#     client,
-#     query: str,
-#     query_vector,
-#     alpha: float = 0.5,
-#     limit: int = 20,
-# ) -> pd.DataFrame:
-#     collection = client.collections.get(settings.CHUNK_COLLECTION)
-
-#     if hasattr(query_vector, "tolist"):
-#         query_vector = query_vector.tolist()
-
-#     response = collection.query.hybrid(
-#         query=query,
-#         vector=query_vector,
-#         target_vector="dense_vector",
-#         alpha=alpha,
-#         query_properties=["chunk_text_sparse"],
-#         limit=limit,
-#         return_properties=RETURN_PROPERTIES,
-#         return_metadata=["score"],
-#     )
-
-#     return _objects_to_df(response.objects, score_attr="score")
